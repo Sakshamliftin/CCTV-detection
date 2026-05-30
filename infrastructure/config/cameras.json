@@ -1,0 +1,40 @@
+{
+  "cameras": [
+    {
+      "id": "cam_01",
+      "name": "Main Entrance Camera",
+      "rtsp_url": "rtsp://localhost:8554/cam01",
+      "zone_ids": ["zone_entrance"],
+      "resolution": [1920, 1080],
+      "fps": 30,
+      "status": "online"
+    },
+    {
+      "id": "cam_02",
+      "name": "Checkout Area Camera",
+      "rtsp_url": "rtsp://localhost:8554/cam02",
+      "zone_ids": ["zone_checkout"],
+      "resolution": [1920, 1080],
+      "fps": 30,
+      "status": "online"
+    },
+    {
+      "id": "cam_03",
+      "name": "Floor Camera North",
+      "rtsp_url": "rtsp://localhost:8554/cam03",
+      "zone_ids": ["zone_electronics", "zone_grocery"],
+      "resolution": [1920, 1080],
+      "fps": 30,
+      "status": "online"
+    },
+    {
+      "id": "cam_04",
+      "name": "Floor Camera South",
+      "rtsp_url": "rtsp://localhost:8554/cam04",
+      "zone_ids": ["zone_clothing"],
+      "resolution": [1920, 1080],
+      "fps": 30,
+      "status": "online"
+    }
+  ]
+}

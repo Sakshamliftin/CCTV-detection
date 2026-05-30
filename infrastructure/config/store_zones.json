@@ -1,0 +1,44 @@
+{
+  "zones": [
+    {
+      "id": "zone_entrance",
+      "name": "Entrance",
+      "type": "entrance",
+      "polygon": [[0.25, 0.8], [0.75, 0.8], [0.75, 1.0], [0.25, 1.0]],
+      "capacity": 50,
+      "color": "#06b6d4"
+    },
+    {
+      "id": "zone_checkout",
+      "name": "Checkout",
+      "type": "checkout",
+      "polygon": [[0.75, 0.6], [1.0, 0.6], [1.0, 1.0], [0.75, 1.0]],
+      "capacity": 30,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "zone_electronics",
+      "name": "Electronics",
+      "type": "retail",
+      "polygon": [[0.0, 0.0], [0.5, 0.0], [0.5, 0.4], [0.0, 0.4]],
+      "capacity": 40,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "zone_grocery",
+      "name": "Grocery",
+      "type": "retail",
+      "polygon": [[0.5, 0.0], [1.0, 0.0], [1.0, 0.4], [0.5, 0.4]],
+      "capacity": 60,
+      "color": "#10b981"
+    },
+    {
+      "id": "zone_clothing",
+      "name": "Clothing",
+      "type": "retail",
+      "polygon": [[0.0, 0.4], [0.5, 0.4], [0.5, 0.8], [0.0, 0.8]],
+      "capacity": 35,
+      "color": "#ec4899"
+    }
+  ]
+}
