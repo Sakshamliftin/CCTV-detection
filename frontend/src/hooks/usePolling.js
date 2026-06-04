@@ -9,9 +9,14 @@ export function usePolling(fetchFn, intervalMs = 5000) {
   const [error, setError] = useState(null);
   const mountedRef = useRef(true);
 
+  const fetchFnRef = useRef(fetchFn);
+  useEffect(() => {
+    fetchFnRef.current = fetchFn;
+  }, [fetchFn]);
+
   const fetchData = useCallback(async () => {
     try {
-      const result = await fetchFn();
+      const result = await fetchFnRef.current();
       if (mountedRef.current) {
         setData(result);
         setError(null);
@@ -23,7 +28,7 @@ export function usePolling(fetchFn, intervalMs = 5000) {
         setLoading(false);
       }
     }
-  }, [fetchFn]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;

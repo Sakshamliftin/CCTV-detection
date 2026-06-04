@@ -18,6 +18,8 @@ from app.zones import ZoneManager
 from app.event_producer import EventProducer
 from app.pipeline import VideoPipeline
 from app.simulator import EventSimulator
+from app.jsonl_emitter import JSONLEmitter
+from app.clip_processor import ClipProcessor
 
 # Logging setup
 logging.basicConfig(
@@ -32,6 +34,7 @@ producer = EventProducer()
 zone_manager: ZoneManager = None
 pipelines: Dict[str, VideoPipeline] = {}
 simulator: EventSimulator = None
+jsonl_emitter: JSONLEmitter = None
 
 
 @asynccontextmanager
@@ -46,6 +49,9 @@ async def lifespan(app: FastAPI):
 
     # Load zone configuration
     zone_manager = ZoneManager(settings.zones_config_path)
+    
+    global jsonl_emitter
+    jsonl_emitter = JSONLEmitter()
 
     # Initialize YOLO detector
     try:
@@ -172,6 +178,36 @@ async def stop_pipeline(camera_id: str):
         raise HTTPException(status_code=404, detail=f"No pipeline for camera {camera_id}")
     pipelines[camera_id].stop()
     return {"status": "stopping", "camera_id": camera_id}
+
+
+class StoreProcessRequest(BaseModel):
+    store_id: str
+    clips: list
+    zones: list
+
+@app.post("/process/store")
+async def process_store(request: StoreProcessRequest):
+    """Process an entire store's uploaded clips using specific processors."""
+    if detector is None:
+        raise HTTPException(status_code=503, detail="YOLO model not loaded")
+        
+    store_zm = ZoneManager("")
+    store_zm.load_store_zones(request.zones)
+    
+    processor = ClipProcessor(detector, store_zm, producer, jsonl_emitter)
+    
+    # Process each clip in background
+    for clip in request.clips:
+        asyncio.create_task(
+            processor.process_clip(
+                store_id=request.store_id,
+                clip_type=clip.get("type", "zone"),
+                camera_id=clip.get("camera", "cam_01"),
+                file_path=clip.get("path")
+            )
+        )
+        
+    return {"status": "processing", "store_id": request.store_id, "clips": len(request.clips)}
 
 
 @app.get("/pipelines")

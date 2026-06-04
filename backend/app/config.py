@@ -1,5 +1,6 @@
 """Application configuration from environment variables."""
 import json
+# pyrefly: ignore [missing-import]
 from pydantic_settings import BaseSettings
 from typing import Dict, List, Any
 
@@ -32,6 +33,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()

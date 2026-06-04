@@ -1,3 +1,48 @@
+-- stores table
+CREATE TABLE stores (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100),
+    layout_image_path VARCHAR(500),
+    status VARCHAR(50) DEFAULT 'uploaded',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- store_clips table
+CREATE TABLE store_clips (
+    id VARCHAR(100) PRIMARY KEY,
+    store_id VARCHAR(50) REFERENCES stores(id),
+    filename VARCHAR(200) NOT NULL,
+    clip_type VARCHAR(50) NOT NULL,
+    camera_id VARCHAR(50),
+    file_path VARCHAR(500) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- store_zones table
+CREATE TABLE store_zones (
+    id VARCHAR(100) PRIMARY KEY,
+    store_id VARCHAR(50) REFERENCES stores(id),
+    zone_id VARCHAR(50) NOT NULL,
+    zone_name VARCHAR(100),
+    zone_type VARCHAR(50),
+    polygon JSONB,
+    is_revenue_zone BOOLEAN DEFAULT FALSE,
+    camera_id VARCHAR(50)
+);
+
+-- pos_transactions table
+CREATE TABLE pos_transactions (
+    id SERIAL PRIMARY KEY,
+    store_id VARCHAR(50) REFERENCES stores(id),
+    order_id VARCHAR(50),
+    order_date DATE,
+    order_time TIME,
+    product_id VARCHAR(50),
+    brand_name VARCHAR(100),
+    total_amount FLOAT
+);
+
 -- cameras table
 CREATE TABLE cameras (
     id VARCHAR(50) PRIMARY KEY,

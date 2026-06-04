@@ -27,6 +27,16 @@ class PersonZoneState:
     zone_enter_times: Dict[str, float] = field(default_factory=dict)
     in_store: bool = False
     store_enter_time: float = 0.0
+    trajectory_y: List[float] = field(default_factory=list)
+
+    def get_direction(self) -> str:
+        """Calculate movement direction based on vertical trajectory."""
+        if len(self.trajectory_y) < 2:
+            return "unknown"
+        # Moving from bottom (higher Y) to top (lower Y) is entering the store
+        if self.trajectory_y[-1] < self.trajectory_y[0]:
+            return "in"
+        return "out"
 
 
 def point_in_polygon(point: Tuple[float, float], polygon: List[Tuple[float, float]]) -> bool:
@@ -50,7 +60,23 @@ class ZoneManager:
     def __init__(self, config_path: str):
         self.zones: Dict[str, Zone] = {}
         self._person_states: Dict[int, PersonZoneState] = {}
-        self._load_zones(config_path)
+        if config_path:
+            self._load_zones(config_path)
+
+    def load_store_zones(self, zones_data: List[Dict]):
+        """Load zones directly from API payload for a specific store."""
+        self.zones.clear()
+        for z in zones_data:
+            zone = Zone(
+                id=z["id"],
+                name=z["name"],
+                zone_type=z.get("zone_type", "retail"),
+                polygon=[tuple(p) for p in z["polygon"]],
+                capacity=z.get("capacity", 50),
+                color=z.get("color", "#06b6d4"),
+            )
+            self.zones[zone.id] = zone
+        logger.info(f"Loaded {len(self.zones)} custom zones for store.")
 
     def _load_zones(self, config_path: str):
         """Load zone definitions from JSON config."""
@@ -85,6 +111,11 @@ class ZoneManager:
             self._person_states[track_id] = PersonZoneState(track_id=track_id)
         state = self._person_states[track_id]
 
+        # Track vertical position for direction detection
+        state.trajectory_y.append(ny)
+        if len(state.trajectory_y) > 10:
+            state.trajectory_y.pop(0)
+
         events = []
         now = time.time()
 
@@ -96,6 +127,7 @@ class ZoneManager:
                 "event_type": "person_entered",
                 "zone_id": "store",
                 "zone_name": "Store",
+                "direction": state.get_direction()
             })
 
         # Check each zone
@@ -167,6 +199,7 @@ class ZoneManager:
                 "zone_id": "store",
                 "zone_name": "Store",
                 "dwell_seconds": round(dwell, 1),
+                "direction": state.get_direction()
             })
 
         return events

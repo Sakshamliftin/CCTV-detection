@@ -79,6 +79,8 @@ class EventSimulator:
                 zone_id="zone_entrance",
                 zone_name="Entrance",
                 metadata={"confidence": round(random.uniform(0.7, 0.98), 2)},
+                confidence=round(random.uniform(0.7, 0.98), 2),
+                is_staff=False,
             )
 
             # Plan a zone visit path
@@ -114,6 +116,8 @@ class EventSimulator:
                     zone_id=old_zone,
                     zone_name=ZONE_NAMES[old_zone],
                     metadata={"dwell_seconds": dwell},
+                    confidence=1.0,
+                    is_staff=False,
                 )
 
                 if dwell >= 30:
@@ -124,6 +128,8 @@ class EventSimulator:
                         zone_id=old_zone,
                         zone_name=ZONE_NAMES[old_zone],
                         metadata={"dwell_seconds": dwell},
+                        confidence=1.0,
+                        is_staff=False,
                     )
 
                 # Enter new zone
@@ -134,6 +140,8 @@ class EventSimulator:
                     zone_id=new_zone,
                     zone_name=ZONE_NAMES[new_zone],
                     metadata={"confidence": round(random.uniform(0.7, 0.98), 2)},
+                    confidence=round(random.uniform(0.7, 0.98), 2),
+                    is_staff=False,
                 )
                 state["current_zone"] = new_zone
 
@@ -147,6 +155,8 @@ class EventSimulator:
                     zone_id=state["current_zone"],
                     zone_name=ZONE_NAMES[state["current_zone"]],
                     metadata={"dwell_seconds": round(random.uniform(10, 60), 1)},
+                    confidence=1.0,
+                    is_staff=False,
                 )
                 await self.producer.publish_event(
                     event_type="person_exited",
@@ -155,6 +165,8 @@ class EventSimulator:
                     zone_id="zone_entrance",
                     zone_name="Entrance",
                     metadata={"dwell_seconds": dwell},
+                    confidence=1.0,
+                    is_staff=False,
                 )
                 exited.append(track_id)
 

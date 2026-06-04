@@ -1,6 +1,8 @@
 """SQLAlchemy ORM models."""
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, JSON, ARRAY, Text, ForeignKey
+# pyrefly: ignore [missing-import]
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, JSON, ARRAY, Text, ForeignKey, Date, Time
+# pyrefly: ignore [missing-import]
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -16,6 +18,55 @@ class Camera(Base):
     zone_ids = Column(ARRAY(Text))
     status = Column(String(20), default="offline")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Store(Base):
+    __tablename__ = "stores"
+    
+    id = Column(String(50), primary_key=True)
+    name = Column(String(100))
+    layout_image_path = Column(String(500))
+    status = Column(String(50), default="uploaded")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class StoreClip(Base):
+    __tablename__ = "store_clips"
+    
+    id = Column(String(100), primary_key=True)
+    store_id = Column(String(50), ForeignKey("stores.id"))
+    filename = Column(String(200), nullable=False)
+    clip_type = Column(String(50), nullable=False)
+    camera_id = Column(String(50))
+    file_path = Column(String(500), nullable=False)
+    status = Column(String(50), default="pending")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class StoreZone(Base):
+    __tablename__ = "store_zones"
+    
+    id = Column(String(100), primary_key=True)
+    store_id = Column(String(50), ForeignKey("stores.id"))
+    zone_id = Column(String(50), nullable=False)
+    zone_name = Column(String(100))
+    zone_type = Column(String(50))
+    polygon = Column(JSON)
+    is_revenue_zone = Column(Boolean, default=False)
+    camera_id = Column(String(50))
+
+
+class POSTransaction(Base):
+    __tablename__ = "pos_transactions"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    store_id = Column(String(50), ForeignKey("stores.id"))
+    order_id = Column(String(50))
+    order_date = Column(Date)
+    order_time = Column(Time)
+    product_id = Column(String(50))
+    brand_name = Column(String(100))
+    total_amount = Column(Float)
 
 
 class StoreEvent(Base):

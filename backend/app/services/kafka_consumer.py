@@ -1,7 +1,11 @@
-"""Kafka consumer — subscribes to store_events and dispatches to engines."""
+"""Kafka consumer — subscribes to store_events and dispatches to engines.
+
+v1.1: Tracks last_event_timestamp for stale feed detection.
+"""
 import asyncio
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 from aiokafka import AIOKafkaConsumer
@@ -21,12 +25,13 @@ class EventConsumer:
         self.anomaly = anomaly
         self._consumer: Optional[AIOKafkaConsumer] = None
         self._running = False
+        self.last_event_timestamp: Optional[str] = None   # ISO string
 
     async def start(self):
         """Start consuming from Kafka."""
         retry_count = 0
         max_retries = 10
-        
+
         while retry_count < max_retries:
             try:
                 self._consumer = AIOKafkaConsumer(
@@ -39,17 +44,21 @@ class EventConsumer:
                 )
                 await self._consumer.start()
                 self._running = True
-                logger.info(f"Kafka consumer started, subscribed to '{settings.kafka_store_events_topic}'")
-                
+                logger.info(
+                    f"Kafka consumer started, subscribed to '{settings.kafka_store_events_topic}'"
+                )
                 await self._consume_loop()
                 break
-                
+
             except Exception as e:
                 retry_count += 1
                 wait_time = min(retry_count * 3, 30)
-                logger.warning(f"Kafka consumer connection attempt {retry_count}/{max_retries} failed: {e}. Retrying in {wait_time}s...")
+                logger.warning(
+                    f"Kafka consumer connection attempt {retry_count}/{max_retries} "
+                    f"failed: {e}. Retrying in {wait_time}s..."
+                )
                 await asyncio.sleep(wait_time)
-        
+
         if retry_count >= max_retries:
             logger.error("Kafka consumer failed to connect after max retries")
 
@@ -61,15 +70,19 @@ class EventConsumer:
                     break
                 try:
                     event = message.value
-                    logger.debug(f"Received event: {event.get('event_type')} from {message.topic}")
-                    
+                    self.last_event_timestamp = datetime.now(timezone.utc).isoformat()
+                    logger.debug(
+                        f"Received event: {event.get('event_type')} from {message.topic}"
+                    )
+
                     # Process through analytics engine
                     await self.analytics.process_event(event)
-                    
-                    # Check for anomalies
+
+                    # Pass current metrics to anomaly engine for ConversionDropDetector
                     zone_occupancy = dict(self.analytics._zone_occupancy)
-                    await self.anomaly.evaluate(event, zone_occupancy)
-                    
+                    metrics = self.analytics.get_metrics()
+                    await self.anomaly.evaluate(event, zone_occupancy, metrics)
+
                 except Exception as e:
                     logger.error(f"Error processing event: {e}", exc_info=True)
         except Exception as e:
@@ -78,7 +91,6 @@ class EventConsumer:
             await self.stop()
 
     async def stop(self):
-        """Stop the consumer."""
         self._running = False
         if self._consumer:
             try:

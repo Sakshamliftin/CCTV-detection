@@ -46,17 +46,29 @@ class EventProducer:
         zone_id: str = "",
         zone_name: str = "",
         metadata: Optional[dict] = None,
+        confidence: float = 1.0,
+        is_staff: bool = False,
     ):
         """Publish a store event to Kafka."""
+        import os
+        store_id = os.environ.get("STORE_ID", "store_01")
+        visitor_id = f"visitor_{track_id}"
+        meta = metadata or {}
+        dwell_seconds = meta.get("dwell_seconds", 0)
+        dwell_ms = int(dwell_seconds * 1000)
+        
         event = {
             "event_id": str(uuid.uuid4()),
-            "event_type": event_type,
+            "store_id": store_id,
             "camera_id": camera_id,
-            "track_id": track_id,
-            "zone_id": zone_id,
-            "zone_name": zone_name,
+            "visitor_id": visitor_id,
+            "event_type": event_type,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "metadata": metadata or {},
+            "zone_id": zone_id,
+            "dwell_ms": dwell_ms,
+            "is_staff": is_staff,
+            "confidence": confidence,
+            "metadata": meta,
         }
 
         if self._producer:
