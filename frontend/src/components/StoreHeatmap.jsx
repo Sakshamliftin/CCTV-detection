@@ -6,10 +6,10 @@ export default function StoreHeatmap({ zones }) {
   // Store layout geometry
   const layout = {
     zone_entrance: { x: 250, y: 380, w: 300, h: 100 },
-    zone_checkout: { x: 580, y: 380, w: 200, h: 100 },
-    zone_electronics: { x: 20, y: 20, w: 370, h: 170 },
-    zone_grocery: { x: 410, y: 20, w: 370, h: 170 },
-    zone_clothing: { x: 20, y: 210, w: 370, h: 150 },
+    PURPLLE_MUM_1076_Z_BILLING_01: { x: 580, y: 380, w: 200, h: 100 },
+    PURPLLE_MUM_1076_Z01: { x: 20, y: 20, w: 370, h: 170 },
+    PURPLLE_MUM_1076_Z02: { x: 410, y: 20, w: 370, h: 170 },
+    PURPLLE_MUM_1076_Z03: { x: 20, y: 210, w: 370, h: 150 },
   };
 
   // Find max occupancy for normalization (at least 1 to avoid div by zero)

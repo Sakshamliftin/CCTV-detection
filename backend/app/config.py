@@ -38,6 +38,11 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# Render automatically provides $DATABASE_URL starting with postgres://
+# SQLAlchemy asyncpg requires postgresql+asyncpg://
+if settings.database_url and settings.database_url.startswith("postgres://"):
+    settings.database_url = settings.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
 
 def load_zones_config() -> List[Dict[str, Any]]:
     """Load zone configuration from JSON file."""
